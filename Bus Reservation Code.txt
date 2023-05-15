@@ -67,7 +67,7 @@ public class BusTicketReservationClass {
 Apex Bus Ticket Reservation Test Class:
 
 @isTest
-private class BusTicketReservationClassTest {
+public class BusTicketReservationClassTest {
     
     @isTest
     static void testBookSeat() {
