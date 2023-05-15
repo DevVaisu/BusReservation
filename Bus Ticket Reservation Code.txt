@@ -1,0 +1,145 @@
+Apex Bus Ticket Reservation Class:
+
+public class BusTicketReservationClass {
+    
+    public class BusDetailWrapper {
+        public Integer totalSeats;
+        public List<Integer> occupiedMaleSeats; 
+        public List<Integer> occupiedFemaleSeats;
+    }
+    
+    public class BookingDetailsWrapper {
+        public String passengerName;
+        public String gender;
+        public Integer seatNumber;
+    }
+    
+    public static List<BookingDetailsWrapper> bookSeat(BusDetailWrapper busDetails, List<BookingDetailsWrapper> bookings) {
+        
+        integer availableSeats = busDetails.totalSeats - busDetails.occupiedMaleSeats.size() - busDetails.occupiedFemaleSeats.size();
+        List<Integer> bookedSeats = new List<Integer>();
+        bookedSeats.addAll(busDetails.occupiedMaleSeats);
+        bookedSeats.addAll(busDetails.occupiedFemaleSeats);
+        
+        if(availableSeats> bookings.size()){
+            for(BookingDetailsWrapper bookingRec : bookings){
+                
+                if(bookingRec.gender == 'Male'){
+                    for(integer i = busDetails.totalSeats; i>=1 ; i--){
+                        system.debug('Seat Number --> '+ i);
+                        if(!bookedSeats.contains(i)){
+                            if((!busDetails.occupiedFemaleSeats.contains(i-1))	&&	(!busDetails.occupiedFemaleSeats.contains(i+1))){
+                                system.debug('Alloted Seat:' +i);
+                                bookingRec.seatNumber = i;
+                                bookedSeats.add(i);
+                                busDetails.occupiedMaleSeats.add(i);
+                                availableSeats-=1;
+                                break;
+                            }
+                        }  
+                    }
+                }
+                else if(bookingRec.gender == 'Female'){
+                    for(integer i = 0; i<=busDetails.totalSeats ; i++){
+                        system.debug('Seat Number --> '+ i);
+                        if(!bookedSeats.contains(i)){
+                            if((!busDetails.occupiedMaleSeats.contains(i-1))	&&	(!busDetails.occupiedMaleSeats.contains(i+1))){
+                                system.debug('Alloted Seat:' +i);
+                                bookingRec.seatNumber = i;
+                                bookedSeats.add(i);
+                                busDetails.occupiedFemaleSeats.add(i);
+                                availableSeats-=1;
+                                break;
+                            }
+                        } 
+                    }
+                }
+            }
+            return bookings;
+        }
+        else{
+            return null;
+        }
+    } 
+}
+
+Apex Bus Ticket Reservation Test Class:
+
+@isTest
+public class BusTicketReservationClassTest {
+    
+    @isTest
+    static void testBookSeat() {
+        
+        BusTicketReservationClass.BusDetailWrapper busDetails = new BusTicketReservationClass.BusDetailWrapper();
+        busDetails.totalSeats = 20;
+        busDetails.occupiedMaleSeats = new List<Integer>{1, 3, 4, 5, 7, 8, 16};
+        busDetails.occupiedFemaleSeats = new List<Integer>{2, 6, 10, 12, 13, 14, 18};
+                
+        List<BusTicketReservationClass.BookingDetailsWrapper> bookings = new List<BusTicketReservationClass.BookingDetailsWrapper>();
+        BusTicketReservationClass.BookingDetailsWrapper booking1 = new BusTicketReservationClass.BookingDetailsWrapper();
+        booking1.passengerName = 'Dev';
+        booking1.gender = 'Male';
+        bookings.add(booking1);
+        BusTicketReservationClass.BookingDetailsWrapper booking2 = new BusTicketReservationClass.BookingDetailsWrapper();
+        booking2.passengerName = 'Rani';
+        booking2.gender = 'Female';
+        bookings.add(booking2);
+        
+        Test.startTest();        
+        List<BusTicketReservationClass.BookingDetailsWrapper> bookedSeats = new List<BusTicketReservationClass.BookingDetailsWrapper>();
+        bookedSeats = BusTicketReservationClass.bookSeat(busDetails, bookings);
+        System.assertEquals(2, bookedSeats.size());
+        System.assertEquals('Male', bookedSeats[0].gender);
+        System.assertEquals('Female', bookedSeats[1].gender);
+        Test.stopTest();
+    }    
+    
+    // Scenario 2
+    @isTest
+    static void testBookSeat1() {
+        BusTicketReservationClass.BusDetailWrapper busDetails1 = new BusTicketReservationClass.BusDetailWrapper();
+        busDetails1.totalSeats = 5;
+        busDetails1.occupiedMaleSeats = new List<Integer>{1, 2, 3};
+        busDetails1.occupiedFemaleSeats = new List<Integer>{4};
+                
+        List<BusTicketReservationClass.BookingDetailsWrapper> bookingsDetails = new List<BusTicketReservationClass.BookingDetailsWrapper>();
+        BusTicketReservationClass.BookingDetailsWrapper bookingsDetails1 = new BusTicketReservationClass.BookingDetailsWrapper();
+        bookingsDetails1.passengerName = 'Satvik';
+        bookingsDetails1.gender = 'Male';
+        bookingsDetails.add(bookingsDetails1);
+        
+        Test.startTest();
+        List<BusTicketReservationClass.BookingDetailsWrapper> bookedSeatsDetails = new List<BusTicketReservationClass.BookingDetailsWrapper>();
+        bookedSeatsDetails = BusTicketReservationClass.bookSeat(busDetails1, bookingsDetails);
+        System.assertEquals(null, bookedSeatsDetails);
+        Test.stopTest();
+    }
+    
+    //Scenario 3
+    @isTest
+    static void testBookSeat2() {
+        BusTicketReservationClass.BusDetailWrapper busDetails2 = new BusTicketReservationClass.BusDetailWrapper();
+        busDetails2.totalSeats = 5;
+        busDetails2.occupiedMaleSeats = new List<Integer>{1, 2};
+        busDetails2.occupiedFemaleSeats = new List<Integer>{4};
+                
+        List<BusTicketReservationClass.BookingDetailsWrapper> listOfBookings = new List<BusTicketReservationClass.BookingDetailsWrapper>();
+        BusTicketReservationClass.BookingDetailsWrapper listOfBookings1 = new BusTicketReservationClass.BookingDetailsWrapper();
+        listOfBookings1.passengerName = 'Kesavan';
+        listOfBookings1.gender = 'Male';
+        listOfBookings.add(listOfBookings1);
+        BusTicketReservationClass.BookingDetailsWrapper listOfBookings2 = new BusTicketReservationClass.BookingDetailsWrapper();
+        listOfBookings2.passengerName = 'Nithya';
+        listOfBookings.add(listOfBookings2);
+        
+        Test.startTest();
+        List<BusTicketReservationClass.BookingDetailsWrapper> listOfBookedSeats = new List<BusTicketReservationClass.BookingDetailsWrapper>();
+        listOfBookedSeats = BusTicketReservationClass.bookSeat(busDetails2, listOfBookings);
+        System.assertEquals(null, listOfBookedSeats);
+        Test.stopTest();
+        
+    }
+    
+}    
+
